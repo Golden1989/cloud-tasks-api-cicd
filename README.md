@@ -2,6 +2,11 @@
 
 Aplicação Flask/SQLite preparada para um laboratório de **CI/CD com GitHub Actions, Docker, GHCR e AWS EC2**. A base contém código, testes e workflows; cabe ao grupo aprovisionar a nuvem, configurar segredos, usar branches/PRs, implementar uma evolução funcional e comprovar a esteira.
 
+## Integrante
+Isabella ([@Golden1989](https://github.com/Golden1989)) — entrega individual, responsável por infraestrutura, workflows, API, testes e documentação.
+
+> Relatório final e prints de evidência (Security Group, instância, CI/CD, persistência, encerramento) foram enviados diretamente ao professor fora deste repositório público, por conterem dados da minha conta AWS pessoal (IP público, ID de conta). Os links de PR e dos runs de CI/CD citados no relatório estão disponíveis na aba *Pull requests* e *Actions* deste repositório.
+
 ## Arquitetura
 `Branch/PR -> CI (pytest + Docker build) -> merge main -> CI (publicação GHCR por SHA) -> CD (runner auto-hospedado na EC2 executa docker pull/run) -> /health`
 

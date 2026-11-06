@@ -5,3 +5,9 @@ __pycache__/
 *.db
 *.pem
 *.key
+
+# Evidencias e relatorio ficam fora do repo publico: contem IP publico,
+# ID de conta AWS e outros dados da conta pessoal da Learner Lab.
+docs/evidencias/
+docs/Relatorio_Final.pdf
+docs/LEIA-ME_PROFESSOR.txt
