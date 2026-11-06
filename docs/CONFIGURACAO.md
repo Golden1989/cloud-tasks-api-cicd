@@ -7,17 +7,14 @@
 
 ## 2. AWS EC2
 1. Crie instância **Ubuntu Server 24.04 LTS**, arquitetura x86_64, com IP público e chave SSH. Verifique preços/limites/créditos antes de iniciar.
-2. Security Group: HTTP TCP/80 de fontes permitidas para testar; SSH TCP/22 **apenas de endereços confiáveis**. Para runner GitHub hospedado (IPs variáveis), use runner auto-hospedado em rede permitida ou implemente acesso de implantação temporário/restrito com supervisão docente. **Não deixe SSH aberto para toda a internet.**
-3. Conecte com SSH e execute `bash scripts/setup-ec2-ubuntu.sh` (copie o script ou clone o repositório na instância). Faça logout/login e teste `docker ps` sem sudo.
-4. Certifique-se que a porta 80 está livre. Execute deploy manual primeiro, se necessário.
+2. Security Group: HTTP TCP/80 de fontes permitidas para testar; SSH TCP/22 **apenas do seu próprio IP**, só para manutenção manual. Como o CD roda em um runner auto-hospedado dentro da própria EC2 (ver item 4), **não é preciso abrir SSH para o runner do GitHub Actions** — o problema do IP variável do runner hospedado deixa de existir. **Não deixe SSH aberto para toda a internet.**
+3. Conecte com SSH (do seu IP) e execute `bash scripts/setup-ec2-ubuntu.sh` (copie o script ou clone o repositório na instância). Faça logout/login e teste `docker ps` sem sudo.
+4. Instale o runner auto-hospedado: no repositório GitHub, acesse Settings > Actions > Runners > New self-hosted runner > Linux x64, e execute na EC2 os comandos exibidos (baixa o pacote, `./config.sh --url ... --token ...`). Depois rode como serviço com `sudo ./svc.sh install && sudo ./svc.sh start`, para seguir ativo mesmo após desconectar o SSH. Confirme que o runner aparece como "Idle" na lista de runners do repositório. O usuário que executa o runner precisa estar no grupo `docker` (feito pelo passo 3).
+5. Certifique-se que a porta 80 está livre. Execute deploy manual primeiro, se necessário.
 
 ## 3. GitHub
-Em Settings > Secrets and variables > Actions configure:
-- Secret `EC2_HOST`: IPv4 público ou DNS público da EC2, sem protocolo.
-- Secret `EC2_SSH_KEY`: conteúdo integral da **chave privada SSH** autorizada na instância; nunca versionar.
-- Secret `EC2_KNOWN_HOSTS`: entrada SSH do host, validada contra a fingerprint confiável da instância (não confiar cegamente em ssh-keyscan).
-- Variable `EC2_USER`: `ubuntu` para a AMI Ubuntu sugerida.
-Crie environment `production` para aprovações (se disponível).
+Em Settings > Secrets and variables > Actions não é necessário nenhum secret de SSH (`EC2_HOST`, `EC2_SSH_KEY`, `EC2_KNOWN_HOSTS`, `EC2_USER`) — o CD roda localmente no runner auto-hospedado da EC2, sem conexão remota. Crie environment `production` para aprovações (se disponível).
+Em Settings > Actions > Runners, mantenha o serviço do runner (`actions.runner.*`) sempre ativo na EC2; se ele cair, os jobs do CD ficam parados em "Queued".
 
 ## 4. Registry GHCR
 A CI publica imagem `ghcr.io/OWNER/REPO:COMMIT_SHA` após `push` na main. Para simplificar o laboratório, nas configurações do pacote GitHub mude a visibilidade da imagem para **Public**, de modo que EC2 execute `docker pull` sem credenciais persistentes. Não publique dados sensíveis na imagem.
@@ -32,9 +29,9 @@ A CI publica imagem `ghcr.io/OWNER/REPO:COMMIT_SHA` após `push` na main. Para s
 ## 6. Diagnóstico
 - Actions falhou em `docker push`: verifique `packages: write`, permissões de Actions e configuração GHCR.
 - `docker pull` falhou na EC2: confira se pacote está público e se tag SHA existe.
-- Falha SSH: reveja Security Group, conectividade do runner, chave, usuário e known_hosts.
+- Job do CD fica "Queued" sem rodar: o runner auto-hospedado está offline — na EC2, confira `sudo ./svc.sh status` (ou `systemctl status actions.runner.*`) e reinicie o serviço.
 - Falha HTTP: verifique SG porta 80, endereço, `docker ps` e `docker logs cloud-tasks-api`.
-- **Atenção:** runner público do GitHub não possui IP fixo. Não altere o SG para 0.0.0.0/0 só para fazer o CD passar. O professor deve providenciar um runner com acesso controlado ou outra estratégia de deploy (ex.: SSM), antes da avaliação do CD.
+- **Observação:** como o CD roda em um runner auto-hospedado dentro da própria EC2, não há necessidade de abrir a porta 22 para IPs do runner do GitHub Actions — isso elimina o problema do IP variável do runner hospedado.
 
 ## 7. Custos e encerramento
 Desligar nem sempre elimina custo de EBS e IP; após a apresentação, exclua instância, volumes e recursos alocados conforme orientação docente.
