@@ -3,7 +3,7 @@
 Aplicação Flask/SQLite preparada para um laboratório de **CI/CD com GitHub Actions, Docker, GHCR e AWS EC2**. A base contém código, testes e workflows; cabe ao grupo aprovisionar a nuvem, configurar segredos, usar branches/PRs, implementar uma evolução funcional e comprovar a esteira.
 
 ## Arquitetura
-`Branch/PR -> CI (pytest + Docker build) -> merge main -> CI (publicação GHCR por SHA) -> CD (SSH EC2 + docker pull/run) -> /health`
+`Branch/PR -> CI (pytest + Docker build) -> merge main -> CI (publicação GHCR por SHA) -> CD (runner auto-hospedado na EC2 executa docker pull/run) -> /health`
 
 ## Rodar localmente
 ```bash
@@ -43,4 +43,4 @@ Leia [docs/CONFIGURACAO.md](docs/CONFIGURACAO.md).
 5. Preencher relatório com diagrama, decisões, evidências e custos/encerramento.
 
 ## Segurança e limitações didáticas
-O deploy é simplificado: não há TLS, balanceamento, rollback automatizado nem alta disponibilidade. Não colocar dados reais na API e não usar este modelo sem endurecimento em produção. SSH a partir de runner hospedado exige planejamento de rede seguro; veja o guia. `docker` group equivale a privilégios elevados na EC2.
+O deploy é simplificado: não há TLS, balanceamento, rollback automatizado nem alta disponibilidade. Não colocar dados reais na API e não usar este modelo sem endurecimento em produção. O CD roda via runner auto-hospedado instalado na própria EC2 (sem SSH do GitHub Actions); veja o guia para configuração do runner. `docker` group equivale a privilégios elevados na EC2.
